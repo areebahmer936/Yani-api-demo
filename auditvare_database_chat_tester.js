@@ -193,6 +193,28 @@ function renderMessages() {
     elements.messagesPanel.appendChild(node);
   });
 
+  if (state.isPending && session.messages.length > 0) {
+    const typingNode = document.createElement("article");
+    typingNode.className = "message-row assistant-row typing-row";
+    typingNode.innerHTML = `
+      <div class="message-bubble assistant-bubble">
+        <div class="assistant-header">
+          <span class="assistant-badge">Assistant</span>
+          <span class="assistant-status">Typing...</span>
+        </div>
+        <div class="typing-block" aria-live="polite" aria-label="Assistant is typing">
+          <span class="typing-label">Preparing response</span>
+          <span class="typing-dots" aria-hidden="true">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </span>
+        </div>
+      </div>
+    `;
+    elements.messagesPanel.appendChild(typingNode);
+  }
+
   requestAnimationFrame(() => {
     elements.messagesPanel.scrollTop = elements.messagesPanel.scrollHeight;
   });
