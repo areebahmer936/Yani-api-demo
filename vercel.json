@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/auditvare_database_chat_tester.html"
+    }
+  ]
+}

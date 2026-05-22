@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yani APIs Demo</title>
+    <link rel="stylesheet" href="./auditvare_database_chat_tester.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div>
+            <h1>Yani APIs Demo</h1>
+          </div>
+        </div>
+
+        <button class="new-session-button" id="newSessionButton" type="button">
+          <span>New Chat</span>
+          <strong>+</strong>
+        </button>
+
+        <div class="session-meta">
+          <span id="sessionCountLabel">0 sessions</span>
+          <span id="storageStatusLabel">Saved locally</span>
+        </div>
+
+        <div class="session-list" id="sessionList"></div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="panel-header">
+          <h2 id="activeSessionTitle">New Chat</h2>
+          <div class="header-status-group">
+            <span class="status-pill" id="connectionStatus">Ready</span>
+          </div>
+        </header>
+
+        <section class="chat-stage" id="chatStage">
+          <div class="welcome-panel" id="welcomePanel" aria-hidden="true"></div>
+
+          <div class="messages-panel" id="messagesPanel"></div>
+
+          <div class="composer-shell" id="composerShell">
+            <form class="composer-card" id="composerForm">
+              <textarea
+                id="chatInput"
+                class="chat-input"
+                rows="1"
+                placeholder="Ask a database chat question"
+              ></textarea>
+              <div class="composer-footer">
+                <div class="composer-hint-group">
+                  <span id="composerHint">Enter to send, Shift+Enter for newline</span>
+                  <span class="pending-indicator hidden" id="pendingIndicator">Generating response...</span>
+                </div>
+                <button class="send-button" id="sendButton" type="submit">Send</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="userMessageTemplate">
+      <article class="message-row user-row">
+        <div class="message-bubble user-bubble">
+          <p class="message-text"></p>
+        </div>
+      </article>
+    </template>
+
+    <template id="assistantMessageTemplate">
+      <article class="message-row assistant-row">
+        <div class="message-bubble assistant-bubble">
+          <div class="assistant-header">
+            <span class="assistant-badge">Assistant</span>
+            <span class="assistant-status"></span>
+          </div>
+          <div class="assistant-answer"></div>
+          <div class="assistant-meta"></div>
+          <details class="assistant-details">
+            <summary>Response details</summary>
+            <div class="assistant-details-content"></div>
+          </details>
+        </div>
+      </article>
+    </template>
+
+    <script src="./auditvare_database_chat_tester.js"></script>
+  </body>
+</html>
