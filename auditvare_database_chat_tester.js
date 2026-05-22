@@ -259,6 +259,28 @@ function addMessage(session, message) {
   render();
 }
 
+function buildRequestMessages(session) {
+  return session.messages
+    .filter((message) => message.role === "user" || message.role === "assistant")
+    .map((message) => {
+      if (message.role === "user") {
+        return {
+          role: "user",
+          content: message.text,
+        };
+      }
+
+      return {
+        role: "assistant",
+        content:
+          message.response?.data?.answer ||
+          message.response?.message ||
+          "",
+      };
+    })
+    .filter((message) => message.content && message.content.trim());
+}
+
 async function sendMessage(text) {
   const session = getActiveSession();
   if (!session || state.isPending) return;
@@ -283,6 +305,7 @@ async function sendMessage(text) {
       body: JSON.stringify({
         user_id: session.userId,
         question: text,
+        messages: buildRequestMessages(session),
       }),
     });
 

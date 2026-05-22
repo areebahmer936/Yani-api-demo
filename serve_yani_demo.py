@@ -24,6 +24,54 @@ CONTENT_TYPES = {
     ".css": "text/css; charset=utf-8",
     ".js": "application/javascript; charset=utf-8",
 }
+MAX_HISTORY_MESSAGES = 10
+
+
+def normalize_messages(messages: object) -> list[dict[str, str]]:
+    if not isinstance(messages, list):
+        return []
+
+    normalized: list[dict[str, str]] = []
+    for message in messages:
+        if not isinstance(message, dict):
+            continue
+
+        role = message.get("role")
+        content = str(message.get("content") or "").strip()
+        if role not in {"user", "assistant"} or not content:
+            continue
+
+        normalized.append({"role": role, "content": content})
+
+    return normalized[-MAX_HISTORY_MESSAGES:]
+
+
+def build_contextual_question(question: object, messages: object) -> str:
+    latest_question = str(question or "").strip()
+    normalized_messages = normalize_messages(messages)
+    if not normalized_messages:
+        return latest_question
+
+    history = "\n".join(
+        f"{'User' if message['role'] == 'user' else 'Assistant'}: {message['content']}"
+        for message in normalized_messages[:-1]
+    )
+
+    if not history:
+        return latest_question
+
+    return "\n".join(
+        [
+            "Continue this chat using the prior conversation as context.",
+            "",
+            "Conversation history:",
+            history,
+            "",
+            f"Latest user message: {latest_question}",
+            "",
+            "Answer the latest user message while staying consistent with the conversation above.",
+        ]
+    )
 
 
 class YaniDemoHandler(BaseHTTPRequestHandler):
@@ -82,14 +130,19 @@ class YaniDemoHandler(BaseHTTPRequestHandler):
         raw_body = self.rfile.read(content_length)
 
         try:
-            json.loads(raw_body.decode("utf-8"))
+            request_payload = json.loads(raw_body.decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
             self._send_json_response(400, {"status": "error", "code": 400, "message": "Invalid JSON body", "data": None})
             return
 
+        upstream_payload = {
+            "user_id": request_payload.get("user_id"),
+            "question": build_contextual_question(request_payload.get("question"), request_payload.get("messages")),
+        }
+
         upstream_request = Request(
             UPSTREAM_URL,
-            data=raw_body,
+            data=json.dumps(upstream_payload).encode("utf-8"),
             headers={
                 "Content-Type": "application/json",
                 "Ocp-Apim-Subscription-Key": SUBSCRIPTION_KEY,
