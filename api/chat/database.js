@@ -1,6 +1,4 @@
 const UPSTREAM_URL = "https://ai.ecovis.yanipro.ai/apis/chat/database";
-const MAX_HISTORY_MESSAGES = 10;
-
 function setCorsHeaders(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -22,51 +20,6 @@ function parseBody(body) {
 
   return body;
 }
-
-function normalizeMessages(messages) {
-  if (!Array.isArray(messages)) {
-    return [];
-  }
-
-  return messages
-    .filter((message) => message && (message.role === "user" || message.role === "assistant"))
-    .map((message) => ({
-      role: message.role,
-      content: String(message.content || "").trim(),
-    }))
-    .filter((message) => message.content)
-    .slice(-MAX_HISTORY_MESSAGES);
-}
-
-function buildContextualQuestion(question, messages) {
-  const normalizedQuestion = String(question || "").trim();
-  const normalizedMessages = normalizeMessages(messages);
-
-  if (!normalizedMessages.length) {
-    return normalizedQuestion;
-  }
-
-  const history = normalizedMessages
-    .slice(0, -1)
-    .map((message) => `${message.role === "user" ? "User" : "Assistant"}: ${message.content}`)
-    .join("\n");
-
-  if (!history) {
-    return normalizedQuestion;
-  }
-
-  return [
-    "Continue this chat using the prior conversation as context.",
-    "",
-    "Conversation history:",
-    history,
-    "",
-    `Latest user message: ${normalizedQuestion}`,
-    "",
-    "Answer the latest user message while staying consistent with the conversation above.",
-  ].join("\n");
-}
-
 module.exports = async function handler(req, res) {
   setCorsHeaders(res);
 
@@ -107,7 +60,7 @@ module.exports = async function handler(req, res) {
   try {
     const upstreamPayload = {
       user_id: payload?.user_id,
-      question: buildContextualQuestion(payload?.question, payload?.messages),
+      question: String(payload?.question || "").trim(),
     };
 
     const upstreamResponse = await fetch(UPSTREAM_URL, {

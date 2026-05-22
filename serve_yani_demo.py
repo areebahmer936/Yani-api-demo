@@ -24,54 +24,6 @@ CONTENT_TYPES = {
     ".css": "text/css; charset=utf-8",
     ".js": "application/javascript; charset=utf-8",
 }
-MAX_HISTORY_MESSAGES = 10
-
-
-def normalize_messages(messages: object) -> list[dict[str, str]]:
-    if not isinstance(messages, list):
-        return []
-
-    normalized: list[dict[str, str]] = []
-    for message in messages:
-        if not isinstance(message, dict):
-            continue
-
-        role = message.get("role")
-        content = str(message.get("content") or "").strip()
-        if role not in {"user", "assistant"} or not content:
-            continue
-
-        normalized.append({"role": role, "content": content})
-
-    return normalized[-MAX_HISTORY_MESSAGES:]
-
-
-def build_contextual_question(question: object, messages: object) -> str:
-    latest_question = str(question or "").strip()
-    normalized_messages = normalize_messages(messages)
-    if not normalized_messages:
-        return latest_question
-
-    history = "\n".join(
-        f"{'User' if message['role'] == 'user' else 'Assistant'}: {message['content']}"
-        for message in normalized_messages[:-1]
-    )
-
-    if not history:
-        return latest_question
-
-    return "\n".join(
-        [
-            "Continue this chat using the prior conversation as context.",
-            "",
-            "Conversation history:",
-            history,
-            "",
-            f"Latest user message: {latest_question}",
-            "",
-            "Answer the latest user message while staying consistent with the conversation above.",
-        ]
-    )
 
 
 class YaniDemoHandler(BaseHTTPRequestHandler):
@@ -137,7 +89,7 @@ class YaniDemoHandler(BaseHTTPRequestHandler):
 
         upstream_payload = {
             "user_id": request_payload.get("user_id"),
-            "question": build_contextual_question(request_payload.get("question"), request_payload.get("messages")),
+            "question": str(request_payload.get("question") or "").strip(),
         }
 
         upstream_request = Request(
